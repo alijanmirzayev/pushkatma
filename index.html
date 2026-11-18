@@ -42,6 +42,8 @@
   .stars span:nth-child(2n){animation-delay:.4s}
   .stars span:nth-child(3n){animation-delay:.8s}
   @keyframes twinkle{50%{opacity:.35;transform:scale(.8)}}
+  .logo{display:block;width:clamp(140px,24vw,210px);height:auto;margin:14px auto 0;
+    filter:brightness(0) invert(1) drop-shadow(0 0 16px rgba(0,225,255,.5))}
 
   /* ---------- Komanda daxil etmə ---------- */
   .teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
@@ -140,6 +142,8 @@
 <div class="wrap">
   <header>
     <div class="stars"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    <!-- logo.png faylı bu HTML ilə eyni qovluqda olmalıdır -->
+    <img class="logo" src="logo.png" alt="" onerror="this.style.display='none'">
   </header>
 
   <div class="teams" id="teams"></div>
@@ -179,11 +183,6 @@ const TEAM_NAMES = {1:"Samir", 2:"Alican", 3:"Əli"};
 const YT_VIDEO_ID = "Gb1iGDchKYs";
 const REVEAL_DELAY = 3000; // 3 saniyə
 
-const defaults = {
-  1:["Benfica","Psv","Bavariya","Lyon"],
-  2:["Borussiya","Psg","Porto","Feyenord"],
-  3:["Sporting","Paris FC","Ajax","Stuttgart"]
-};
 
 /* ===== Komanda kartları ===== */
 const teamsEl = document.getElementById("teams");
@@ -191,7 +190,7 @@ for (let t = 1; t <= 3; t++) {
   const card = document.createElement("div");
   card.className = "card";
   card.innerHTML = `<h2><span class="badge">${TEAM_NAMES[t][0]}</span>${TEAM_NAMES[t]}</h2>` +
-    [0,1,2,3].map(i => `<input data-team="${t}" placeholder="Komanda ${i+1}" value="${defaults[t][i]}">`).join("");
+    [0,1,2,3].map(i => `<input data-team="${t}" placeholder="Komanda ${i+1}">`).join("");
   teamsEl.appendChild(card);
 }
 
