@@ -117,6 +117,30 @@
   .flash{animation:flash 1s}
   @keyframes flash{0%{background:rgba(0,225,255,.35)}100%{background:transparent}}
 
+  /* ---------- Kubok sayı ---------- */
+  .trophies{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .trophy{background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.14);
+    border-radius:14px;padding:16px;text-align:center;transition:.4s}
+  .trophy.win{border-color:#e8c26a;box-shadow:0 0 25px rgba(232,194,106,.45)}
+  .tr-name{display:flex;align-items:center;justify-content:center;gap:8px;font-weight:800;letter-spacing:1px}
+  .tr-name .badge{width:26px;height:26px;font-size:12px}
+  .tr-count{font-size:30px;margin:8px 0}
+  .tr-count b{font-weight:900;color:#e8c26a}
+  .tr-btns{display:flex;justify-content:center;gap:8px}
+  .tr-btns button{width:30px;height:30px;border-radius:50%;background:transparent;color:var(--muted);
+    border:1px solid rgba(255,255,255,.25);font-size:16px;letter-spacing:0;padding:0}
+  .tr-btns button:hover{color:var(--cyan);border-color:var(--cyan)}
+
+  #champion{display:none;margin-top:18px;text-align:center;padding:26px 16px;border-radius:16px;
+    background:radial-gradient(ellipse at center,rgba(232,194,106,.25),rgba(11,17,96,.6));border:1px solid rgba(232,194,106,.6);
+    animation:pop .6s}
+  @keyframes pop{from{transform:scale(.9);opacity:0}}
+  #champion .cup{font-size:54px;animation:twinkle 2s infinite}
+  #champion .ch-label{letter-spacing:6px;text-transform:uppercase;color:#e8c26a;font-weight:800;font-size:13px;margin-top:6px}
+  #champion .ch-name{font-weight:900;font-size:32px;letter-spacing:3px;margin-top:4px}
+  #champion .ch-sub{color:var(--silver);margin-top:6px;font-size:14px}
+  @media(max-width:640px){.trophies{gap:8px}.trophy{padding:12px 6px}.tr-count{font-size:24px}}
+
   /* ---------- Yoxlama ---------- */
   .check{display:flex;gap:12px;align-items:flex-start;padding:10px 14px;border-radius:10px;margin-bottom:6px;background:rgba(255,255,255,.04);font-size:14px}
   .check .ic{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:900}
@@ -146,6 +170,10 @@
     <img class="logo" src="logo.png" alt="" onerror="this.style.display='none'">
   </header>
 
+  <div class="section-head" style="margin-top:0"><h3>Kubok sayı</h3></div>
+  <div class="trophies" id="trophies"></div>
+
+  <div class="section-head"><h3>Komandalar</h3></div>
   <div class="teams" id="teams"></div>
 
   <div class="actions">
@@ -169,6 +197,7 @@
         <tbody id="standings"></tbody>
       </table>
     </div>
+    <div id="champion"></div>
 
     <div class="section-head"><h3>Qaydaların yoxlanması</h3></div>
     <div id="checks"></div>
@@ -264,6 +293,7 @@ async function draw(){
   });
 
   // UI hazırlığı
+  awardedTo = null;
   setBusy(true);
   const box = document.getElementById("matches");
   box.innerHTML = matches.map(matchHTML).join("");
@@ -350,7 +380,55 @@ function renderStandings(flash){
       <td>${r.AQ}</td><td>${r.YQ}</td><td class="hide-sm">${f > 0 ? "+"+f : f}</td><td class="pts">${r.X}</td>
     </tr>`;
   }).join("");
+  checkChampion(rows);
 }
+
+/* ===== Kubok sayı (brauzerdə yadda saxlanır) ===== */
+const LS_KEY = "pushkatma_trophies";
+function loadTrophies(){
+  try { const v = JSON.parse(localStorage.getItem(LS_KEY)); if (v && typeof v === "object") return {1:v[1]|0, 2:v[2]|0, 3:v[3]|0}; } catch(e) {}
+  return {1:0, 2:0, 3:0};
+}
+function saveTrophies(){ try { localStorage.setItem(LS_KEY, JSON.stringify(trophies)); } catch(e) {} }
+let trophies = loadTrophies();
+let awardedTo = null; // bu püşkatmada kuboku kim alıb
+
+function checkChampion(rows){
+  const banner = document.getElementById("champion");
+  const allDone = matches.length === 6 && matches.every(m => m.done);
+  let winner = null;
+  if (allDone) {
+    const a = rows[0], b = rows[1];
+    const tied = a.X === b.X && (a.AQ - a.YQ) === (b.AQ - b.YQ) && a.AQ === b.AQ;
+    if (!tied) winner = a.t;
+  }
+  if (winner !== awardedTo) {
+    if (awardedTo) trophies[awardedTo] = Math.max(0, trophies[awardedTo] - 1); // skor dəyişibsə, köhnə kuboku geri al
+    if (winner) trophies[winner]++;
+    awardedTo = winner;
+    saveTrophies();
+    renderTrophies(winner);
+  }
+  if (!allDone) { banner.style.display = "none"; return; }
+  banner.style.display = "block";
+  banner.innerHTML = winner
+    ? `<div class="cup">🏆</div><div class="ch-label">Çempion</div><div class="ch-name">${esc(TEAM_NAMES[winner])}</div><div class="ch-sub">Kubok sayı: ${trophies[winner]}</div>`
+    : `<div class="cup">🤝</div><div class="ch-label">Bərabərlik</div><div class="ch-sub">Xal, fərq və atılan qol eynidir — kubok verilmədi</div>`;
+}
+
+function renderTrophies(highlight){
+  document.getElementById("trophies").innerHTML = [1,2,3].map(t => `
+    <div class="trophy ${highlight === t ? "win" : ""}">
+      <div class="tr-name"><span class="badge">${esc(TEAM_NAMES[t][0])}</span>${esc(TEAM_NAMES[t])}</div>
+      <div class="tr-count">🏆 <b>${trophies[t]}</b></div>
+      <div class="tr-btns"><button onclick="adjTrophy(${t},-1)" title="Azalt">−</button><button onclick="adjTrophy(${t},1)" title="Artır">+</button></div>
+    </div>`).join("");
+}
+function adjTrophy(t, d){
+  trophies[t] = Math.max(0, trophies[t] + d);
+  saveTrophies(); renderTrophies();
+}
+renderTrophies();
 
 function renderChecks(){
   const pairCount = {"1-2":0,"1-3":0,"2-3":0}, teamGames = {1:[],2:[],3:[]}, played = [];
@@ -381,7 +459,7 @@ document.getElementById("clearBtn").addEventListener("click", () => {
   document.getElementById("result").style.display = "none";
   document.getElementById("error").textContent = "";
   document.getElementById("status").textContent = "";
-  matches = [];
+  matches = []; awardedTo = null;
 });
 </script>
 </body>
