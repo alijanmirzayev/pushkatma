@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Çempionlar Püşkatması</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#04073a; --navy2:#0b1160; --blue:#1a2a9c; --cyan:#00e1ff; --magenta:#d81ca8;
+    --silver:#d9dde8; --muted:#9aa3c7; --white:#fff; --green:#18c27a; --red:#e24b5b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Montserrat',Arial,sans-serif;color:var(--white);min-height:100vh;
+    background:
+      radial-gradient(ellipse at 15% -10%, rgba(0,225,255,.22), transparent 50%),
+      radial-gradient(ellipse at 90% 110%, rgba(216,28,168,.22), transparent 55%),
+      linear-gradient(160deg,#02031f 0%,var(--navy) 45%,#081052 100%);
+    padding:24px 14px 70px;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;opacity:.4;
+    background-image:
+      radial-gradient(1.5px 1.5px at 10% 20%,#fff,transparent),
+      radial-gradient(1px 1px at 30% 70%,#fff,transparent),
+      radial-gradient(1.5px 1.5px at 55% 15%,#fff,transparent),
+      radial-gradient(1px 1px at 75% 55%,#fff,transparent),
+      radial-gradient(1.5px 1.5px at 90% 30%,#fff,transparent),
+      radial-gradient(1px 1px at 45% 90%,#fff,transparent),
+      radial-gradient(1px 1px at 65% 80%,#fff,transparent),
+      radial-gradient(1.5px 1.5px at 20% 85%,#fff,transparent);
+  }
+  .wrap{max-width:1040px;margin:0 auto;position:relative}
+
+  /* ---------- Başlıq / emblem ---------- */
+  header{text-align:center;margin-bottom:30px}
+  .stars{display:flex;justify-content:center;gap:12px;padding:10px 0}
+  .stars span{width:22px;height:22px;background:var(--silver);
+    clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+    filter:drop-shadow(0 0 6px rgba(0,225,255,.8));animation:twinkle 2.4s infinite ease-in-out}
+  .stars span:nth-child(2n){animation-delay:.4s}
+  .stars span:nth-child(3n){animation-delay:.8s}
+  @keyframes twinkle{50%{opacity:.35;transform:scale(.8)}}
+
+  /* ---------- Komanda daxil etmə ---------- */
+  .teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+  .card{background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02));
+    border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  .card h2{font-size:16px;letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+  .badge{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:14px;flex:none;
+    background:linear-gradient(135deg,var(--cyan),var(--blue));box-shadow:0 0 12px rgba(0,225,255,.6)}
+  .card input{width:100%;margin-bottom:9px;padding:11px 13px;border-radius:9px;border:1px solid rgba(255,255,255,.18);
+    background:rgba(2,3,31,.6);color:#fff;font-family:inherit;font-size:14px;outline:none;transition:.2s}
+  .card input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,225,255,.2)}
+
+  .actions{text-align:center;margin:26px 0 8px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  button{font-family:inherit;font-weight:800;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border:none;transition:.2s}
+  .btn-main{font-size:14px;padding:15px 36px;border-radius:40px;color:var(--navy);
+    background:linear-gradient(180deg,#fff,var(--silver));box-shadow:0 0 25px rgba(0,225,255,.45)}
+  .btn-main:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 0 40px rgba(0,225,255,.75)}
+  .btn-sec{font-size:14px;padding:15px 30px;border-radius:40px;color:#fff;background:transparent;border:1px solid rgba(255,255,255,.35)}
+  .btn-sec:hover:not(:disabled){border-color:var(--cyan);color:var(--cyan)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .error{color:#ff7a8a;text-align:center;min-height:22px;font-weight:600;font-size:14px}
+  .status{text-align:center;color:var(--cyan);font-weight:700;letter-spacing:3px;text-transform:uppercase;font-size:13px;min-height:20px}
+
+  /* ---------- Bölmə başlığı ---------- */
+  #result{margin-top:24px;display:none}
+  .section-head{display:flex;align-items:center;gap:14px;margin:30px 0 14px}
+  .section-head h3{font-weight:900;letter-spacing:4px;text-transform:uppercase;font-size:18px;white-space:nowrap}
+  .section-head::after{content:"";flex:1;height:2px;background:linear-gradient(90deg,var(--cyan),transparent)}
+
+  /* ---------- Oyun kartları ---------- */
+  .match{
+    background:linear-gradient(90deg,rgba(26,42,156,.55),rgba(11,17,96,.45));
+    border:1px solid rgba(255,255,255,.12);border-radius:12px;margin-bottom:10px;overflow:hidden;
+    opacity:0;transform:translateY(20px) scale(.97);transition:.6s cubic-bezier(.2,.8,.2,1)
+  }
+  .match.show{opacity:1;transform:none}
+  .match.done{border-color:rgba(24,194,122,.5)}
+  .match-top{display:flex;justify-content:space-between;padding:7px 16px;font-size:11px;letter-spacing:2px;
+    text-transform:uppercase;color:var(--muted);background:rgba(0,0,0,.25)}
+  .match-top b{color:var(--cyan)}
+  .match-body{display:grid;grid-template-columns:1fr auto 1fr auto;align-items:center;gap:12px;padding:14px 16px}
+  .club{display:flex;flex-direction:column;gap:3px;min-width:0}
+  .club.home{text-align:right;align-items:flex-end}
+  .club .name{font-weight:800;font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+  .club .tm{font-size:11px;letter-spacing:2px;color:var(--cyan);text-transform:uppercase;font-weight:700}
+  .score{display:flex;align-items:center;gap:6px}
+  .score input{width:46px;height:46px;text-align:center;font-family:inherit;font-weight:900;font-size:20px;
+    border-radius:8px;border:1px solid rgba(255,255,255,.25);background:#fff;color:var(--navy);outline:none}
+  .score input:focus{box-shadow:0 0 0 3px rgba(0,225,255,.45)}
+  .score input:disabled{background:var(--navy);color:#fff;border-color:var(--cyan)}
+  .score span{font-weight:900;color:var(--muted)}
+  .confirm{font-size:11px;padding:11px 14px;border-radius:8px;color:var(--navy);background:var(--cyan);min-width:96px}
+  .confirm:hover{filter:brightness(1.15)}
+  .confirm.edit{background:transparent;color:var(--silver);border:1px solid rgba(255,255,255,.3)}
+
+  /* ---------- Xal cədvəli ---------- */
+  .table-wrap{border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.12);
+    background:linear-gradient(180deg,rgba(11,17,96,.7),rgba(4,7,58,.7))}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  thead th{background:linear-gradient(90deg,var(--blue),var(--navy2));padding:12px 8px;font-size:11px;letter-spacing:2px;
+    text-transform:uppercase;color:var(--silver);font-weight:700}
+  th.l,td.l{text-align:left}
+  td{padding:13px 8px;text-align:center;border-top:1px solid rgba(255,255,255,.07);font-weight:600}
+  tbody tr{transition:background .3s}
+  tbody tr:hover{background:rgba(255,255,255,.04)}
+  tbody tr:first-child td:first-child{box-shadow:inset 4px 0 0 var(--cyan)}
+  .pos{font-weight:900;width:44px;color:var(--cyan)}
+  .tname{font-weight:800;letter-spacing:1px;display:flex;align-items:center;gap:10px}
+  .tname .badge{width:26px;height:26px;font-size:12px}
+  .pts{font-weight:900;font-size:16px;color:#fff;background:rgba(0,225,255,.12)}
+  .flash{animation:flash 1s}
+  @keyframes flash{0%{background:rgba(0,225,255,.35)}100%{background:transparent}}
+
+  /* ---------- Yoxlama ---------- */
+  .check{display:flex;gap:12px;align-items:flex-start;padding:10px 14px;border-radius:10px;margin-bottom:6px;background:rgba(255,255,255,.04);font-size:14px}
+  .check .ic{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:900}
+  .ok .ic{background:var(--green)}.bad .ic{background:var(--red)}
+  .check small{display:block;color:var(--muted);margin-top:3px}
+
+  /* musiqi pleyeri – kiçik */
+  #ytBox{position:fixed;right:12px;bottom:12px;width:200px;height:113px;border-radius:10px;overflow:hidden;
+    box-shadow:0 6px 20px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.2);opacity:0;pointer-events:none;transition:.4s;z-index:10}
+  #ytBox.on{opacity:1;pointer-events:auto}
+
+  @media(max-width:640px){
+    .match-body{grid-template-columns:1fr auto 1fr;}
+    .confirm{grid-column:1/-1;width:100%}
+    .club .name{font-size:14px}
+    .score input{width:40px;height:40px;font-size:17px}
+    .hide-sm{display:none}
+    td,th{padding:10px 4px!important;font-size:12px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="stars"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+  </header>
+
+  <div class="teams" id="teams"></div>
+
+  <div class="actions">
+    <button class="btn-main" id="drawBtn">Püşkatmanı keçir</button>
+    <button class="btn-sec" id="clearBtn">Təmizlə</button>
+  </div>
+  <div class="error" id="error"></div>
+  <div class="status" id="status"></div>
+
+  <div id="result">
+    <div class="section-head"><h3>Oyunlar</h3></div>
+    <div id="matches"></div>
+
+    <div class="section-head"><h3>Xal cədvəli</h3></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th class="l">Komanda</th><th>O</th><th class="hide-sm">Q</th><th class="hide-sm">H</th><th class="hide-sm">M</th>
+          <th>AQ</th><th>YQ</th><th class="hide-sm">F</th><th>Xal</th>
+        </tr></thead>
+        <tbody id="standings"></tbody>
+      </table>
+    </div>
+
+    <div class="section-head"><h3>Qaydaların yoxlanması</h3></div>
+    <div id="checks"></div>
+  </div>
+</div>
+
+<div id="ytBox"><div id="ytPlayer"></div></div>
+
+<script>
+/* ===== Parametrlər ===== */
+const TEAM_NAMES = {1:"Samir", 2:"Alican", 3:"Əli"};
+const YT_VIDEO_ID = "Gb1iGDchKYs";
+const REVEAL_DELAY = 3000; // 3 saniyə
+
+const defaults = {
+  1:["Benfica","Psv","Bavariya","Lyon"],
+  2:["Borussiya","Psg","Porto","Feyenord"],
+  3:["Sporting","Paris FC","Ajax","Stuttgart"]
+};
+
+/* ===== Komanda kartları ===== */
+const teamsEl = document.getElementById("teams");
+for (let t = 1; t <= 3; t++) {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `<h2><span class="badge">${TEAM_NAMES[t][0]}</span>${TEAM_NAMES[t]}</h2>` +
+    [0,1,2,3].map(i => `<input data-team="${t}" placeholder="Komanda ${i+1}" value="${defaults[t][i]}">`).join("");
+  teamsEl.appendChild(card);
+}
+
+/* ===== Köməkçilər ===== */
+function rand(n){ const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; }
+function shuffle(arr){ const a = arr.slice(); for (let i = a.length-1; i > 0; i--) { const j = rand(i+1); [a[i],a[j]] = [a[j],a[i]]; } return a; }
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+/* ===== YouTube musiqi ===== */
+let player = null, playerReady = false;
+const tag = document.createElement("script");
+tag.src = "https://www.youtube.com/iframe_api";
+document.head.appendChild(tag);
+window.onYouTubeIframeAPIReady = function(){
+  player = new YT.Player("ytPlayer", {
+    width: 200, height: 113, videoId: YT_VIDEO_ID,
+    playerVars: { controls: 0, rel: 0, modestbranding: 1, playsinline: 1 },
+    events: { onReady: () => { playerReady = true; } }
+  });
+};
+function musicStart(){
+  if (!playerReady) return;
+  document.getElementById("ytBox").classList.add("on");
+  player.setVolume(80); player.seekTo(0, true); player.playVideo();
+}
+async function musicStop(){
+  if (!playerReady) return;
+  for (let v = 80; v >= 0; v -= 10) { player.setVolume(v); await sleep(120); } // yumşaq susma
+  player.stopVideo();
+  document.getElementById("ytBox").classList.remove("on");
+}
+
+/* ===== Vəziyyət ===== */
+let matches = [];
+let teamsData = {};
+
+function readTeams(){
+  const teams = {1:[],2:[],3:[]};
+  document.querySelectorAll("input[data-team]").forEach(inp => { const v = inp.value.trim(); if (v) teams[inp.dataset.team].push(v); });
+  return teams;
+}
+
+/* Tam təsadüfi sıra: 6 cütü qarışdır, yalnız "ardıcıl 3 oyun" qaydasını pozmayanı qəbul et */
+function randomOrder(){
+  const base = [[1,2],[1,2],[1,3],[1,3],[2,3],[2,3]];
+  while (true) {
+    const o = shuffle(base);
+    let ok = true;
+    for (let i = 0; i + 2 < o.length && ok; i++)
+      for (let t = 1; t <= 3; t++)
+        if (o[i].includes(t) && o[i+1].includes(t) && o[i+2].includes(t)) ok = false;
+    if (ok) return o;
+  }
+}
+
+async function draw(){
+  const err = document.getElementById("error"), status = document.getElementById("status");
+  err.textContent = "";
+  const teams = readTeams();
+  for (let t = 1; t <= 3; t++) if (teams[t].length !== 4) { err.textContent = `${TEAM_NAMES[t]} üçün 4 komanda yazılmalıdır.`; return; }
+  const all = [...teams[1],...teams[2],...teams[3]].map(s => s.toLowerCase());
+  if (new Set(all).size !== all.length) { err.textContent = "Komanda adları təkrarlanmamalıdır."; return; }
+  teamsData = teams;
+
+  const pool = {1:shuffle(teams[1]), 2:shuffle(teams[2]), 3:shuffle(teams[3])};
+  matches = randomOrder().map(([a,b], i) => {
+    let home = {club: pool[a].pop(), team: a}, away = {club: pool[b].pop(), team: b};
+    if (rand(2)) [home, away] = [away, home];
+    return {n: i+1, home, away, hs: null, as: null, done: false};
+  });
+
+  // UI hazırlığı
+  setBusy(true);
+  const box = document.getElementById("matches");
+  box.innerHTML = matches.map(matchHTML).join("");
+  document.getElementById("checks").innerHTML = "";
+  renderStandings();
+  const res = document.getElementById("result");
+  res.style.display = "block";
+  res.scrollIntoView({behavior:"smooth", block:"start"});
+
+  musicStart();
+  for (let i = 0; i < matches.length; i++) {
+    status.textContent = `Püşkatma gedir… ${i+1}-ci oyun`;
+    await sleep(REVEAL_DELAY);
+    const el = document.getElementById("m" + matches[i].n);
+    el.classList.add("show");
+    el.scrollIntoView({behavior:"smooth", block:"center"});
+  }
+  status.textContent = "Püşkatma bitdi!";
+  await musicStop();
+  renderChecks();
+  setBusy(false);
+}
+
+function setBusy(b){
+  document.getElementById("drawBtn").disabled = b;
+  document.getElementById("clearBtn").disabled = b;
+  document.querySelectorAll("input[data-team]").forEach(i => i.disabled = b);
+}
+
+function matchHTML(m){
+  return `
+  <div class="match" id="m${m.n}">
+    <div class="match-top"><span>Oyun <b>${m.n}</b></span><span>${esc(TEAM_NAMES[m.home.team])} vs ${esc(TEAM_NAMES[m.away.team])}</span></div>
+    <div class="match-body">
+      <div class="club home"><span class="name">${esc(m.home.club)}</span><span class="tm">${esc(TEAM_NAMES[m.home.team])}</span></div>
+      <div class="score">
+        <input type="number" min="0" max="99" id="hs${m.n}" inputmode="numeric">
+        <span>:</span>
+        <input type="number" min="0" max="99" id="as${m.n}" inputmode="numeric">
+      </div>
+      <div class="club"><span class="name">${esc(m.away.club)}</span><span class="tm">${esc(TEAM_NAMES[m.away.team])}</span></div>
+      <button class="confirm" onclick="toggleConfirm(${m.n})" id="btn${m.n}">Təsdiqlə</button>
+    </div>
+  </div>`;
+}
+
+function toggleConfirm(n){
+  const m = matches.find(x => x.n === n);
+  const hi = document.getElementById("hs"+n), ai = document.getElementById("as"+n), btn = document.getElementById("btn"+n);
+  if (!m.done) {
+    const h = parseInt(hi.value, 10), a = parseInt(ai.value, 10);
+    if (isNaN(h) || isNaN(a) || h < 0 || a < 0) { hi.focus(); document.getElementById("error").textContent = `Oyun ${n}: hər iki skoru yaz.`; return; }
+    document.getElementById("error").textContent = "";
+    m.hs = h; m.as = a; m.done = true;
+    hi.disabled = ai.disabled = true;
+    btn.textContent = "Düzəlt"; btn.classList.add("edit");
+    document.getElementById("m"+n).classList.add("done");
+  } else {
+    m.done = false; m.hs = m.as = null;
+    hi.disabled = ai.disabled = false;
+    btn.textContent = "Təsdiqlə"; btn.classList.remove("edit");
+    document.getElementById("m"+n).classList.remove("done");
+  }
+  renderStandings(true);
+}
+
+function renderStandings(flash){
+  const s = {};
+  for (let t = 1; t <= 3; t++) s[t] = {t, O:0, Q:0, H:0, M:0, AQ:0, YQ:0, X:0};
+  matches.filter(m => m.done).forEach(m => {
+    const H = s[m.home.team], A = s[m.away.team];
+    H.O++; A.O++; H.AQ += m.hs; H.YQ += m.as; A.AQ += m.as; A.YQ += m.hs;
+    if (m.hs > m.as) { H.Q++; A.M++; H.X += 3; }
+    else if (m.hs < m.as) { A.Q++; H.M++; A.X += 3; }
+    else { H.H++; A.H++; H.X++; A.X++; }
+  });
+  const rows = Object.values(s).sort((a,b) => b.X - a.X || (b.AQ-b.YQ) - (a.AQ-a.YQ) || b.AQ - a.AQ || a.t - b.t);
+  document.getElementById("standings").innerHTML = rows.map((r,i) => {
+    const f = r.AQ - r.YQ;
+    return `<tr class="${flash ? "flash" : ""}">
+      <td class="pos">${i+1}</td>
+      <td class="l"><div class="tname"><span class="badge">${esc(TEAM_NAMES[r.t][0])}</span>${esc(TEAM_NAMES[r.t])}</div></td>
+      <td>${r.O}</td><td class="hide-sm">${r.Q}</td><td class="hide-sm">${r.H}</td><td class="hide-sm">${r.M}</td>
+      <td>${r.AQ}</td><td>${r.YQ}</td><td class="hide-sm">${f > 0 ? "+"+f : f}</td><td class="pts">${r.X}</td>
+    </tr>`;
+  }).join("");
+}
+
+function renderChecks(){
+  const pairCount = {"1-2":0,"1-3":0,"2-3":0}, teamGames = {1:[],2:[],3:[]}, played = [];
+  matches.forEach(m => {
+    pairCount[[m.home.team, m.away.team].sort().join("-")]++;
+    teamGames[m.home.team].push(m.n); teamGames[m.away.team].push(m.n);
+    played.push(m.home.club, m.away.club);
+  });
+  const allClubs = [...teamsData[1],...teamsData[2],...teamsData[3]];
+  const once = played.length === 12 && new Set(played).size === 12 && allClubs.every(c => played.includes(c));
+  const noThree = [1,2,3].every(t => { const g = teamGames[t]; for (let i = 0; i+2 < g.length; i++) if (g[i+2]-g[i] === 2) return false; return true; });
+  const N = TEAM_NAMES;
+  const checks = [
+    [Object.values(pairCount).every(v => v === 2), "Hər Team digər iki Team ilə 2 oyun keçirir",
+      `${N[1]}–${N[2]}: ${pairCount["1-2"]}, ${N[1]}–${N[3]}: ${pairCount["1-3"]}, ${N[2]}–${N[3]}: ${pairCount["2-3"]}`],
+    [once, "Hər komanda yalnız 1 dəfə oynayır", "12 komanda, təkrar yoxdur"],
+    [true, "Rəqiblər və oyun sırası tam təsadüfi seçilib", "crypto.getRandomValues ilə"],
+    [noThree, "Heç bir Team ardıcıl 3 oyunda iştirak etmir", [1,2,3].map(t => `${N[t]}: ${teamGames[t].join(", ")}`).join(" • ")],
+    [matches.length === 6, "Ümumi oyun sayı 6-dır", `${matches.length} oyun`]
+  ];
+  document.getElementById("checks").innerHTML = checks.map(([ok,title,info]) => `
+    <div class="check ${ok ? "ok" : "bad"}"><span class="ic">${ok ? "✓" : "✕"}</span><div>${title}<small>${esc(info)}</small></div></div>`).join("");
+}
+
+document.getElementById("drawBtn").addEventListener("click", draw);
+document.getElementById("clearBtn").addEventListener("click", () => {
+  document.querySelectorAll("input[data-team]").forEach(i => i.value = "");
+  document.getElementById("result").style.display = "none";
+  document.getElementById("error").textContent = "";
+  document.getElementById("status").textContent = "";
+  matches = [];
+});
+</script>
+</body>
+</html>
