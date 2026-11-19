@@ -238,19 +238,17 @@ window.onYouTubeIframeAPIReady = function(){
   player = new YT.Player("ytPlayer", {
     width: 200, height: 113, videoId: YT_VIDEO_ID,
     playerVars: { controls: 0, rel: 0, modestbranding: 1, playsinline: 1 },
-    events: { onReady: () => { playerReady = true; } }
+    events: {
+      onReady: () => { playerReady = true; },
+      // mahnı özü bitəndə pleyeri gizlət
+      onStateChange: e => { if (e.data === YT.PlayerState.ENDED) document.getElementById("ytBox").classList.remove("on"); }
+    }
   });
 };
 function musicStart(){
   if (!playerReady) return;
   document.getElementById("ytBox").classList.add("on");
   player.setVolume(80); player.seekTo(0, true); player.playVideo();
-}
-async function musicStop(){
-  if (!playerReady) return;
-  for (let v = 80; v >= 0; v -= 10) { player.setVolume(v); await sleep(120); } // yumşaq susma
-  player.stopVideo();
-  document.getElementById("ytBox").classList.remove("on");
 }
 
 /* ===== Vəziyyət ===== */
@@ -304,15 +302,16 @@ async function draw(){
   res.scrollIntoView({behavior:"smooth", block:"start"});
 
   musicStart();
+  // hər oyun 3 saniyə fərqlə gəlir
   for (let i = 0; i < matches.length; i++) {
-    status.textContent = `Püşkatma gedir… ${i+1}-ci oyun`;
+    status.textContent = "Püşkatma gedir…";
     await sleep(REVEAL_DELAY);
     const el = document.getElementById("m" + matches[i].n);
     el.classList.add("show");
     el.scrollIntoView({behavior:"smooth", block:"center"});
   }
   status.textContent = "Püşkatma bitdi!";
-  await musicStop();
+  saveState();
   renderChecks();
   setBusy(false);
 }
@@ -358,6 +357,38 @@ function toggleConfirm(n){
     document.getElementById("m"+n).classList.remove("done");
   }
   renderStandings(true);
+  saveState();
+}
+
+/* ===== Oyunlar, skorlar və xal cədvəli brauzerdə yadda saxlanır ===== */
+const STATE_KEY = "pushkatma_state";
+function saveState(){
+  try { localStorage.setItem(STATE_KEY, JSON.stringify({matches, teamsData, awardedTo})); } catch(e) {}
+}
+function restoreState(){
+  let st = null;
+  try { st = JSON.parse(localStorage.getItem(STATE_KEY)); } catch(e) {}
+  if (!st || !Array.isArray(st.matches) || st.matches.length !== 6 || !st.teamsData) return;
+  matches = st.matches; teamsData = st.teamsData; awardedTo = st.awardedTo || null;
+
+  // komanda xanalarını doldur
+  for (let t = 1; t <= 3; t++)
+    document.querySelectorAll(`input[data-team="${t}"]`).forEach((inp, i) => inp.value = (teamsData[t] || [])[i] || "");
+
+  // oyunları göstər
+  document.getElementById("matches").innerHTML = matches.map(matchHTML).join("");
+  matches.forEach(m => {
+    document.getElementById("m"+m.n).classList.add("show");
+    if (m.done) {
+      const hi = document.getElementById("hs"+m.n), ai = document.getElementById("as"+m.n), btn = document.getElementById("btn"+m.n);
+      hi.value = m.hs; ai.value = m.as; hi.disabled = ai.disabled = true;
+      btn.textContent = "Düzəlt"; btn.classList.add("edit");
+      document.getElementById("m"+m.n).classList.add("done");
+    }
+  });
+  renderStandings();
+  renderChecks();
+  document.getElementById("result").style.display = "block";
 }
 
 function renderStandings(flash){
@@ -455,12 +486,16 @@ function renderChecks(){
 
 document.getElementById("drawBtn").addEventListener("click", draw);
 document.getElementById("clearBtn").addEventListener("click", () => {
+  if (matches.length && !confirm("Oyunlar və skorlar silinsin? (Kubok sayı qalacaq)")) return;
   document.querySelectorAll("input[data-team]").forEach(i => i.value = "");
   document.getElementById("result").style.display = "none";
   document.getElementById("error").textContent = "";
   document.getElementById("status").textContent = "";
-  matches = []; awardedTo = null;
+  matches = []; awardedTo = null; teamsData = {};
+  try { localStorage.removeItem(STATE_KEY); } catch(e) {}
 });
+
+restoreState();
 </script>
 </body>
 </html>
